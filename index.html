@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกปริมาณและค่าใช้จ่ายการใช้ไฟฟ้า MDB 1 - Able Medical Company Limited</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js & Datalabels Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              green: '#059669',
+              darkGreen: '#047857',
+              lightGreen: '#d1fae5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f8fafc;
+    }
+    .table-responsive::-webkit-scrollbar {
+      height: 7px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .badge-size-1000 {
+      background-color: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+    .badge-size-100 {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+    .badge-size-other {
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+    .badge-size-holiday {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    /* Clean inline inputs */
+    .grid-input {
+      width: 100%;
+      text-align: center;
+      padding: 4px 2px;
+      font-size: 11px;
+      border-radius: 4px;
+      transition: all 0.15s;
+      outline: none;
+      border: 1px solid transparent;
+      background-color: transparent;
+    }
+    .grid-input:hover:not(.border-red-500):not(:disabled) {
+      background-color: #ffffff;
+      border-color: #cbd5e1;
+    }
+    .grid-input:focus:not(.border-red-500):not(:disabled) {
+      background-color: #ffffff;
+      border-color: #059669;
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+    .grid-input.border-red-500 {
+      border: 1px solid #ef4444 !important;
+      background-color: #fef2f2 !important;
+      color: #b91c1c !important;
+    }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col relative">
+
+  <!-- ======================== LOADING OVERLAY ======================== -->
+  <div id="loadingOverlay" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 text-center border border-slate-200 flex flex-col items-center gap-4">
+      <div class="w-12 h-12 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></div>
+      <div>
+        <h3 class="text-lg font-bold text-slate-800 mb-1">กำลังโหลดข้อมูลล่าสุด...</h3>
+        <p class="text-xs text-slate-500">ดึงข้อมูลจาก Google Sheets (Central Database)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== START COVER SCREEN ======================== -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center relative p-4 bg-cover bg-center" style="background-image: url('https://i.postimg.cc/tTkzsNYy/255634-0.jpg');">
+    <!-- Blur Overlay -->
+    <div class="absolute inset-0 bg-emerald-950/50 backdrop-blur-[6px]"></div>
+    
+    <div class="relative z-10 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl max-w-md w-full p-8 border border-slate-200 text-center overflow-hidden">
+      <!-- Decorative Header -->
+      <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+
+      <div class="flex justify-center mb-6 mt-2">
+        <img 
+          src="https://img2.pic.in.th/messageImage_1787986866051.jpg" 
+          alt="Able Medical Logo" 
+          class="h-32 w-auto object-contain p-2 bg-white rounded-xl shadow-sm border border-slate-100"
+          onerror="this.onerror=null; this.src='https://placehold.co/200x80/059669/ffffff?text=ABLE+MEDICAL';"
+        />
+      </div>
+
+      <h1 class="text-2xl font-bold text-emerald-800 tracking-tight mb-2">Able Medical Co., Ltd.</h1>
+      <p class="text-sm text-slate-600 font-medium mb-8 px-4 leading-relaxed">
+        ระบบบันทึกปริมาณและค่าใช้จ่ายการใช้ไฟฟ้า MDB 1 <br> (PEA TOU Calculation Model)
+      </p>
+
+      <button onclick="startApp()" class="w-full py-4 mt-2 text-base font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2">
+        เริ่มใช้งานระบบ (Start) <i class="fa-solid fa-arrow-right-to-bracket"></i>
+      </button>
+      
+      <div class="mt-8 text-[10px] text-slate-500 font-medium">
+        © 2026-2050 Able Medical Company Limited.<br>
+        <span class="text-emerald-700 font-bold">พัฒนาโดย แผนก PE (UT)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== MAIN APP CONTAINER ======================== -->
+  <div id="appContainer" class="hidden flex-col min-h-screen">
+    
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Company Logo & Title -->
+        <div class="flex items-center space-x-3.5">
+          <div class="h-14 sm:h-20 w-auto flex items-center justify-center p-1 bg-white rounded border border-slate-200 shadow-sm">
+            <img 
+              src="https://img2.pic.in.th/messageImage_1787986866051.jpg" 
+              alt="Able Medical Logo" 
+              class="h-12 sm:h-16 w-auto object-contain"
+              onerror="this.onerror=null; this.src='https://placehold.co/150x50/059669/ffffff?text=ABLE+MEDICAL';"
+            />
+          </div>
+          <div>
+            <h1 class="text-base sm:text-xl font-bold text-emerald-600 tracking-tight flex items-center gap-2">
+              Able Medical Company Limited
+            </h1>
+            <p class="text-[11px] sm:text-xs text-slate-500 font-normal" data-i18n="appSubtitle">
+              ระบบบันทึกปริมาณและค่าใช้จ่ายการใช้ไฟฟ้า MDB 1
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons & Clock -->
+        <div class="flex items-center gap-2.5">
+          <!-- Sync Indicator (Realtime) -->
+          <div id="syncIndicator" class="hidden items-center gap-1.5 px-2 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold border border-amber-200 transition-opacity">
+            <i class="fa-solid fa-arrows-rotate animate-spin"></i>
+            <span>กำลังซิงค์ข้อมูล...</span>
+          </div>
+
+          <!-- Language Switcher -->
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button onclick="setLanguage('th')" id="langBtnTh" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-600 text-white shadow-sm transition">🇹🇭 TH</button>
+            <button onclick="setLanguage('en')" id="langBtnEn" class="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition">🇬🇧 EN</button>
+          </div>
+
+          <!-- Settings -->
+          <button onclick="openSettingsModal()" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-sliders text-emerald-600"></i>
+            <span class="hidden sm:inline" data-i18n="settingsBtn">ตั้งค่า TOU/FT เดือนนี้</span>
+          </button>
+
+          <!-- Logout -->
+          <button onclick="logoutApp()" class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition" title="Log out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+
+          <!-- Clock -->
+          <div class="flex flex-col text-right text-xs text-slate-500 border-l pl-3 border-slate-200">
+            <span id="currentDateStr" class="font-medium text-slate-700"></span>
+            <span id="currentTimeStr" class="text-emerald-600 font-semibold"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex border-t border-slate-100 overflow-x-auto">
+        <button onclick="switchMainTab('page1')" id="tabBtnPage1" class="px-5 py-2.5 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2 transition whitespace-nowrap">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span data-i18n="tabMeter">หน้าแรก [บันทึกเลขมิเตอร์ไฟฟ้า]</span>
+        </button>
+        <button onclick="switchMainTab('page2')" id="tabBtnPage2" class="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition whitespace-nowrap">
+          <i class="fa-solid fa-calculator"></i>
+          <span data-i18n="tabCost">หน้าสอง [ปริมาณไฟฟ้าที่ใช้ / ค่าใช้จ่าย]</span>
+        </button>
+        <button onclick="switchMainTab('dashboard')" id="tabBtnDashboard" class="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition whitespace-nowrap">
+          <i class="fa-solid fa-chart-line"></i>
+          <span data-i18n="tabDashboard">แดชบอร์ด [ภาพรวมกราฟ]</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+      <!-- TOOLBAR / FILTER & ACTION BUTTONS -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          <div class="flex flex-wrap items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+            <i class="fa-regular fa-calendar-days text-emerald-600 hidden sm:inline-block"></i>
+            <select id="selectYear" onchange="onFilterChange()" class="bg-transparent border-none text-slate-800 text-sm focus:ring-0 font-bold outline-none cursor-pointer">
+              <!-- Options populated by JS (2026-2050) -->
+            </select>
+            <span class="text-slate-300">|</span>
+            <select id="selectMonth" onchange="onFilterChange()" class="bg-transparent border-none text-slate-800 text-sm focus:ring-0 font-bold outline-none cursor-pointer">
+              <option value="all">ทุกเดือน (All)</option>
+              <option value="1">มกราคม (Jan)</option>
+              <option value="2">กุมภาพันธ์ (Feb)</option>
+              <option value="3">มีนาคม (Mar)</option>
+              <option value="4">เมษายน (Apr)</option>
+              <option value="5">พฤษภาคม (May)</option>
+              <option value="6">มิถุนายน (Jun)</option>
+              <option value="7">กรกฎาคม (Jul)</option>
+              <option value="8" selected>สิงหาคม (Aug)</option>
+              <option value="9">กันยายน (Sep)</option>
+              <option value="10">ตุลาคม (Oct)</option>
+              <option value="11">พฤศจิกายน (Nov)</option>
+              <option value="12">ธันวาคม (Dec)</option>
+            </select>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+            <label class="text-[11px] font-semibold text-slate-500 uppercase hidden sm:inline-block" data-i18n="lblDateRange">วันที่:</label>
+            <input type="number" id="filterStartDay" min="1" max="31" value="1" onchange="onFilterChange()" class="w-10 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:border-emerald-500 outline-none">
+            <span class="text-slate-400 text-sm">-</span>
+            <input type="number" id="filterEndDay" min="1" max="31" value="31" onchange="onFilterChange()" class="w-10 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:border-emerald-500 outline-none">
+          </div>
+          
+          <button onclick="resetFilters()" class="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1 shadow-sm transition" title="Reset Filters">
+            <i class="fa-solid fa-arrow-rotate-left text-emerald-600"></i> UT
+          </button>
+
+          <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs border border-slate-200">
+            <span data-i18n="badgeRecordCount">จำนวนรายการ:</span>
+            <span id="recordCountBadge" class="font-bold text-slate-900">0</span>
+            <span data-i18n="unitDays">วัน</span>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto mt-2 lg:mt-0 justify-end">
+          
+          <!-- Manual Refresh Button -->
+          <button onclick="fetchDataFromGoogleSheets(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-sm transition" title="ดึงข้อมูลล่าสุดจาก Sheets">
+            <i class="fa-solid fa-rotate"></i>
+            <span data-i18n="btnRefresh">ดึงข้อมูลล่าสุด (Refresh)</span>
+          </button>
+
+          <!-- Go to Google Sheet -->
+          <button onclick="window.open(AppConfig.sheetUrl, '_blank')" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-sm border border-emerald-900 transition" title="เปิด Google Sheet MDB 1">
+            <i class="fa-solid fa-table text-emerald-200"></i>
+            <span class="hidden sm:inline">Google Sheet Database</span>
+          </button>
+          
+          <button onclick="generateMonthlyPdfReport()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-sm transition" title="พิมพ์หรือส่งออกรายงาน PDF">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span class="hidden sm:inline" data-i18n="btnExportPdf">Export PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI SUMMARY CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Card 1 -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-500 tracking-wider" data-i18n="kpiTotalKwhLabel">พลังงานไฟฟ้ารวม (Total)</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiTotalKWh">0.0</h3>
+              <p class="text-xs text-slate-500 mt-0.5" data-i18n="kpiKwhUnit">kWh (กิโลวัตต์-ชั่วโมง)</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shadow-sm">
+              <i class="fa-solid fa-bolt-lightning"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+            <span>Peak: <b id="kpiPeakRatio" class="text-emerald-700">0%</b></span>
+            <span>Off-Peak/Hol: <b id="kpiOffPeakRatio" class="text-blue-700">0%</b></span>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-500 tracking-wider" data-i18n="kpiTotalCostLabel">ค่าใช้จ่ายรวมทั้งสิ้น</p>
+              <h3 class="text-2xl font-bold text-emerald-600 mt-1" id="kpiTotalCost">0.0</h3>
+              <p class="text-xs text-slate-500 mt-0.5">THB (<span data-i18n="currencyBaht">บาท</span>)</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shadow-sm">
+              <i class="fa-solid fa-coins"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+            <span data-i18n="kpiTotalFtLabel">ค่า Ft รวม:</span>
+            <b id="kpiTotalFtCost" class="text-slate-800">0.0 THB</b>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-500 tracking-wider" data-i18n="kpiAvgDailyLabel">เฉลี่ยต่อวัน (Daily Avg)</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiAvgDailyKWh">0.0</h3>
+              <p class="text-xs text-slate-500 mt-0.5" data-i18n="kpiDailyKwhUnit">kWh / วัน</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shadow-sm">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+            <span data-i18n="kpiDailyCostLabel">เฉลี่ยค่าไฟ/วัน:</span>
+            <b id="kpiAvgDailyCost" class="text-slate-800">0.0 THB</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS SECTION -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Bar Chart -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-emerald-600"></i>
+                <span data-i18n="chartTitle">กราฟแท่งซ้อนสรุปรายวัน</span>
+              </h2>
+            </div>
+            <div class="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-medium border border-slate-200">
+              <button onclick="setChartMode('kwh')" id="btnChartModeKWh" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 font-bold transition">ปริมาณไฟฟ้า (kWh)</button>
+              <button onclick="setChartMode('cost')" id="btnChartModeCost" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition border border-transparent">ค่าใช้จ่าย (THB)</button>
+            </div>
+          </div>
+          <div class="w-full h-72 relative">
+            <canvas id="dailyElectricityChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-chart-pie text-blue-600"></i>
+            <span data-i18n="pieChartTitle">สัดส่วนการใช้พลังงาน (ภาพรวม)</span>
+          </h2>
+          <p class="text-[11px] text-slate-500 mb-4" id="pieChartSubtitle">เทียบอัตราส่วน Peak, Off-Peak, Holiday</p>
+          <div class="w-full flex-1 relative min-h-[200px] flex justify-center items-center">
+            <canvas id="overviewPieChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PAGE 1: บันทึกเลขมิเตอร์ไฟฟ้า ==================== -->
+      <div id="page1Section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 bg-slate-800 text-white flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold flex items-center gap-2">
+              <span class="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded font-semibold" data-i18n="p1Badge">หน้าแรก</span>
+              <span><span data-i18n="p1Title">การบันทึกมิเตอร์ไฟฟ้ารายวัน [ MDB 1 ] ประจำเดือน</span> <span class="currentMonthText text-emerald-400 font-bold"></span></span>
+            </h3>
+            <p class="text-xs text-slate-300 mt-0.5" data-i18n="p1Desc">เลขมิเตอร์ (GWh) หากค่าน้อยกว่ารอบก่อนหน้าจะแสดงสีแดงเตือน สามารถแก้ไขได้โดยตรง</p>
+          </div>
+          <span class="text-xs text-emerald-300 bg-slate-700/80 px-2.5 py-1 rounded-lg border border-slate-600 font-mono">Multiplier: 10^6</span>
+        </div>
+
+        <div class="overflow-x-auto table-responsive w-full">
+          <table class="w-full text-center border-collapse text-xs min-w-[950px]">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold">
+                <th rowspan="2" class="p-2 border-r border-slate-200 w-12 bg-slate-200/70" data-i18n="thDay">วันที่</th>
+                <th rowspan="2" class="p-2 border-r border-slate-200 w-24 bg-slate-200/50" data-i18n="thDayType">ประเภทวัน</th>
+                <th rowspan="2" class="p-2 border-r border-slate-200 w-28 bg-slate-100" data-i18n="thRecorder">ผู้บันทึก</th>
+                <th colspan="2" class="p-2 border-r border-slate-200 bg-emerald-50 text-emerald-800">Main (GWh)</th>
+                <th colspan="2" class="p-2 border-r border-slate-200 bg-blue-50 text-blue-800">MCC01 (GWh)</th>
+                <th colspan="2" class="p-2 border-r border-slate-200 bg-purple-50 text-purple-800">MCC02 (GWh)</th>
+                <th colspan="2" class="p-2 border-r border-slate-200 bg-amber-50 text-amber-800">MCC03 (GWh)</th>
+                <th colspan="2" class="p-2 border-r border-slate-200 bg-teal-50 text-teal-800">MCC04 (GWh)</th>
+                <th rowspan="2" class="p-2 bg-slate-200/70 w-24" data-i18n="thAction">จัดการ</th>
+              </tr>
+              <tr class="bg-slate-50 text-slate-600 border-b border-slate-300 font-medium text-[11px]">
+                <th class="p-1.5 border-r border-slate-200">09.00</th><th class="p-1.5 border-r border-slate-200">22.00</th>
+                <th class="p-1.5 border-r border-slate-200">09.00</th><th class="p-1.5 border-r border-slate-200">22.00</th>
+                <th class="p-1.5 border-r border-slate-200">09.00</th><th class="p-1.5 border-r border-slate-200">22.00</th>
+                <th class="p-1.5 border-r border-slate-200">09.00</th><th class="p-1.5 border-r border-slate-200">22.00</th>
+                <th class="p-1.5 border-r border-slate-200">09.00</th><th class="p-1.5 border-r border-slate-200">22.00</th>
+              </tr>
+            </thead>
+            <tbody id="meterTableBody" class="divide-y divide-slate-200">
+              <!-- Dynamically populated rows with inputs -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-xs text-slate-500 font-medium" data-i18n="tableAddNotice">
+            💡 กดปุ่มเพิ่มแถว กรอกข้อมูลให้ครบ จากนั้นกดปุ่ม ✔️ (สีเขียว) ท้ายตารางเพื่อบันทึกและส่งแจ้งเตือนเข้า LINE
+          </div>
+          <button onclick="addNewTableRow()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-plus"></i><span data-i18n="btnAddRow">+ เพิ่มแถว (Create)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== PAGE 2: สรุปปริมาณไฟฟ้าที่ใช้ / ค่าใช้จ่าย ==================== -->
+      <div id="page2Section" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 bg-slate-800 text-white flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold flex items-center gap-2">
+              <span class="bg-blue-500 text-white text-xs px-2 py-0.5 rounded font-semibold" data-i18n="p2Badge">หน้าสอง</span>
+              <span><span data-i18n="p2Title">สรุปปริมาณไฟฟ้าที่ใช้ / ค่าใช้จ่าย [ MDB 1 ] ประจำเดือน</span> <span class="currentMonthText text-blue-400 font-bold"></span></span>
+            </h3>
+            <div class="text-[11px] text-slate-300 mt-1 flex flex-wrap gap-x-4 gap-y-1">
+              <span><b>Peak:</b> |(มิเตอร์ 22.00 - 9.00)| * 10^6</span>
+              <span><b>Off Peak:</b> |(มิเตอร์ 9.00 ถัดไป - 22.00)| * 10^6</span>
+              <span><b>Holiday:</b> คิดตลอด 24 ชม. เป็น Off-Peak</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-[11px]">
+            <span class="text-slate-300" data-i18n="lblSizeProd">Size ผลิต:</span>
+            <span class="badge-size-1000 px-2 py-0.5 rounded font-bold">1000</span>
+            <span class="badge-size-100 px-2 py-0.5 rounded font-bold">100</span>
+            <span class="badge-size-other px-2 py-0.5 rounded font-bold">other</span>
+            <span class="badge-size-holiday px-2 py-0.5 rounded font-bold" data-i18n="sizeHoliday">วันหยุด</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto table-responsive w-full">
+          <table class="w-full text-center border-collapse text-xs min-w-[900px]">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold">
+                <th rowspan="2" class="p-2.5 border-r border-slate-200 w-12 bg-slate-200/70" data-i18n="thDay">วันที่</th>
+                <th rowspan="2" class="p-2.5 border-r border-slate-200 w-24 bg-slate-100" data-i18n="thSelectSize">ระบุ size ที่ผลิต</th>
+                <th colspan="4" class="p-2 border-r border-slate-200 bg-emerald-50 text-emerald-800" data-i18n="thEnergyUsed">ปริมาณไฟฟ้าที่ใช้</th>
+                <th colspan="5" class="p-2 border-r border-slate-200 bg-blue-50 text-blue-800" data-i18n="thCostUsed">ค่าใช้จ่าย</th>
+                <th rowspan="2" class="p-2.5 border-r border-slate-200 bg-amber-50 text-amber-900 w-24">
+                  <span data-i18n="thGrandTotal">รวมทั้งสิ้น</span><br><span class="text-[10px] text-amber-700 font-normal">(THB)</span>
+                </th>
+                <th rowspan="2" class="p-2.5 bg-slate-200/70 w-12" data-i18n="thAction">ลบ</th>
+              </tr>
+              <tr class="bg-slate-50 text-slate-600 border-b border-slate-300 font-medium text-[11px]">
+                <th class="p-1.5 border-r border-slate-200">Peak<br><span class="text-[10px] text-slate-400 font-normal">kWh</span></th>
+                <th class="p-1.5 border-r border-slate-200">OFF Peak<br><span class="text-[10px] text-slate-400 font-normal">kWh</span></th>
+                <th class="p-1.5 border-r border-slate-200">Holiday<br><span class="text-[10px] text-slate-400 font-normal">kWh</span></th>
+                <th class="p-1.5 border-r border-slate-200 font-bold bg-slate-100">Total<br><span class="text-[10px] text-slate-500 font-normal">kWh</span></th>
+                <th class="p-1.5 border-r border-slate-200">Peak<br><span class="text-[10px] text-slate-400 font-normal">THB</span></th>
+                <th class="p-1.5 border-r border-slate-200">OFF Peak<br><span class="text-[10px] text-slate-400 font-normal">THB</span></th>
+                <th class="p-1.5 border-r border-slate-200">Holiday<br><span class="text-[10px] text-slate-400 font-normal">THB</span></th>
+                <th class="p-1.5 border-r border-slate-200 font-bold bg-slate-100">Total<br><span class="text-[10px] text-slate-500 font-normal">THB</span></th>
+                <th class="p-1.5 border-r border-slate-200 bg-amber-50/50">ค่า FT<br><span class="text-[10px] text-amber-700 font-normal">THB</span></th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody" class="divide-y divide-slate-200">
+              <!-- Dynamically populated rows -->
+            </tbody>
+            <tfoot id="summaryTableFoot" class="bg-slate-100 font-bold border-t-2 border-slate-300">
+              <!-- Total Sum Footer -->
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-xs text-slate-500 font-medium" data-i18n="tablePage2Notice">
+            💡 เปลี่ยน Size ผ่าน Dropdown ระบบจะคำนวณใหม่ (อย่าลืมกดปุ่ม ✔️ ที่หน้าแรกเพื่อบันทึกและแจ้งเตือน)
+          </div>
+          <button onclick="addNewTableRow()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-plus"></i><span data-i18n="btnAddRow">+ เพิ่มแถว (Create)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== DASHBOARD: กราฟเชิงลึก ==================== -->
+      <div id="dashboardSection" class="hidden flex-col gap-6">
+        <div class="p-4 bg-slate-800 text-white flex items-center justify-between rounded-t-2xl">
+          <h3 class="text-base font-bold flex items-center gap-2">
+            <span class="bg-purple-500 text-white text-xs px-2 py-0.5 rounded font-semibold" data-i18n="p3Badge">แดชบอร์ด</span>
+            <span>รายงานวิเคราะห์แนวโน้มรายวัน ประจำเดือน <span class="currentMonthText text-purple-400 font-bold"></span></span>
+          </h3>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 bg-white p-5 rounded-b-2xl border-x border-b border-slate-200 shadow-sm -mt-6">
+          <!-- MCCB Line Chart -->
+          <div class="w-full">
+            <h4 class="text-sm font-bold text-slate-700 mb-2 border-b border-slate-100 pb-2"><i class="fa-solid fa-bolt text-amber-500"></i> ปริมาณการใช้พลังงานแต่ละ MCCB (kWh)</h4>
+            <div class="w-full h-80 relative">
+              <canvas id="mccbLineChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- Costs Line Chart -->
+          <div class="w-full mt-4">
+            <h4 class="text-sm font-bold text-slate-700 mb-2 border-b border-slate-100 pb-2"><i class="fa-solid fa-money-bill-wave text-emerald-600"></i> แนวโน้มค่าใช้จ่ายแยกประเภท (THB)</h4>
+            <div class="w-full h-80 relative">
+              <canvas id="costLineChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ======================== FOOTER ======================== -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 text-center text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p>© 2026-2030 Able Medical Company Limited. All rights reserved.</p>
+        <p data-i18n="footerModel">ระบบบันทึกปริมาณและค่าใช้จ่ายการใช้ไฟฟ้า MDB 1 (PEA TOU Calculation Model)</p>
+        <p class="font-bold text-emerald-600">พัฒนาโดย แผนก PE (UT)</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ======================== MODALS ======================== -->
+  
+  <!-- SETTINGS MODAL -->
+  <div id="settingsModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center"><i class="fa-solid fa-sliders"></i></div>
+          <div>
+            <h3 class="text-base font-bold text-slate-800"><span data-i18n="settingsTitle">ตั้งค่า TOU, Ft</span> (<span class="currentMonthText text-emerald-600 font-bold"></span>)</h3>
+            <p class="text-[11px] text-slate-500" data-i18n="settingsSubtitle">ค่าที่ถูกตั้งจะบันทึกเฉพาะเดือนที่เลือกเท่านั้น</p>
+          </div>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="settingsForm" onsubmit="saveSettings(event)" class="mt-4 space-y-3.5">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="setMultiplier">ตัวคูณ (Multiplier)</label>
+            <input type="number" id="settingMultiplier" required class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 font-mono focus:ring-1 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="setFt">อัตราค่า Ft (บาท/หน่วย) *</label>
+            <input type="number" step="0.0001" id="settingFtRate" required class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 font-mono focus:ring-1 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div><label class="block text-[11px] font-bold text-slate-700 mb-1">Peak (บาท)</label><input type="number" step="0.0001" id="settingPeakRate" class="w-full px-2 py-1.5 text-sm font-mono rounded border border-slate-300 focus:ring-1 focus:ring-emerald-500 outline-none"></div>
+          <div><label class="block text-[11px] font-bold text-slate-700 mb-1">Off-Peak (บาท)</label><input type="number" step="0.0001" id="settingOffPeakRate" class="w-full px-2 py-1.5 text-sm font-mono rounded border border-slate-300 focus:ring-1 focus:ring-emerald-500 outline-none"></div>
+          <div><label class="block text-[11px] font-bold text-slate-700 mb-1">Holiday (บาท)</label><input type="number" step="0.0001" id="settingHolidayRate" class="w-full px-2 py-1.5 text-sm font-mono rounded border border-slate-300 focus:ring-1 focus:ring-emerald-500 outline-none"></div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeSettingsModal()" class="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">ยกเลิก</button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm">บันทึกการตั้งค่า</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div id="confirmModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 border border-slate-200">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+        <div>
+          <h4 class="text-sm font-bold text-slate-800" data-i18n="confirmDeleteTitle">ยืนยันการลบข้อมูล (Delete)</h4>
+          <p class="text-xs text-slate-500 mt-0.5" id="confirmModalMessage">คุณแน่ใจหรือไม่ว่าต้องการลบแถวนี้ การทำงานนี้จะอัปเดตลง Database ทันที?</p>
+        </div>
+      </div>
+      <div id="deleteAuthSection" class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+        <p class="text-[11px] font-bold text-slate-600 mb-1">กรุณากรอกรหัสผ่านเพื่อยืนยันการลบ:</p>
+        <input type="text" id="deleteId" placeholder="ID ผู้ดูแลระบบ (admin)" autocomplete="off" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition">
+        <input type="password" id="deletePass" placeholder="รหัสผ่าน (utadmin)" autocomplete="new-password" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition">
+        <div id="deleteError" class="text-xs text-red-600 font-bold hidden mt-1"><i class="fa-solid fa-circle-xmark"></i> ID หรือ Password ไม่ถูกต้อง!</div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" onclick="closeConfirmModal(false)" class="px-3.5 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg" data-i18n="btnCancel">ยกเลิก</button>
+        <button type="button" onclick="closeConfirmModal(true)" class="px-4 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm" data-i18n="btnDelete">ลบข้อมูล</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- EDIT CELL MODAL -->
+  <div id="editCellModal" class="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200 transform transition-all">
+      <h3 class="text-base font-bold text-emerald-700 mb-1" id="editCellTitle">กรอกข้อมูล</h3>
+      <p class="text-[11px] text-slate-500 mb-4">ระบุค่า GWh ที่อ่านได้จากหน้าปัดมิเตอร์ไฟฟ้า</p>
+      
+      <input type="number" step="0.0001" id="editCellValue" class="w-full p-3 text-center font-mono text-xl border-2 border-slate-300 rounded-xl focus:border-emerald-500 focus:bg-emerald-50 outline-none transition-all mb-5" placeholder="0.0000">
+      
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeEditPopup()" class="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">ยกเลิก (Cancel)</button>
+        <button type="button" onclick="saveEditPopup()" class="px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all flex items-center gap-2">
+          <i class="fa-solid fa-check"></i> ตกลง (Save)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD RECORDER MODAL -->
+  <div id="addRecorderModal" class="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200">
+      <h3 class="text-base font-bold text-slate-800 mb-1">เพิ่มรายชื่อผู้บันทึกใหม่</h3>
+      <p class="text-[11px] text-slate-500 mb-4">กรุณาระบุชื่อผู้บันทึกที่ต้องการเพิ่มลงในระบบ</p>
+      <input type="text" id="newRecorderName" class="w-full p-3 text-sm border border-slate-300 rounded-xl focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none mb-4" placeholder="ระบุชื่อ...">
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeAddRecorderModal()" class="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
+        <button type="button" onclick="saveNewRecorder()" class="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm">เพิ่มรายชื่อ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ======================== JAVASCRIPT LOGIC ======================== -->
+  <script>
+    // Configuration Data
+    const AppConfig = {
+      scriptUrl: 'https://script.google.com/macros/s/AKfycbycd8GJJKfxyanEgT15Tf4OtdOEiKO3ncx3o51WbHf1XnSanDij7kpENJNqWHt5-nxxaA/exec',
+      sheetUrl: 'https://docs.google.com/spreadsheets/d/1yR0uC_fknkz-cbX0b5Nnu_YoY8saxH1cE3aK5gRdEp4/edit'
+    };
+
+    let monthlySettingsStore = {
+      'default': {
+        multiplier: 1000000, ftRate: 0.1623, peakRate: 4.1839, offPeakRate: 2.6037, holidayRate: 2.6037
+      }
+    };
+
+    let currentLang = 'th';
+    let currentMainTab = 'page1';
+    let currentChartMode = 'kwh';
+    let dailyChart = null;
+    let overviewPieChart = null;
+    let mccbLineChart = null;
+    let costLineChart = null;
+    let confirmCallback = null;
+    let meterDataArrays = []; 
+    let costDataArrays = []; 
+    let electricityData = {}; // Store fetched data
+    let globalRecorderOptions = ['โชติ', 'ดิน', 'ดุ๊ก', 'เอ', 'โจ', 'แม็ก', 'แบงค์'];
+    let tempRecorderRowIdx = null; // Store row index when adding new recorder
+    let isEditing = false; // Flag to prevent auto-refresh while user is typing
+    let hasUnsavedChanges = false; // Flag ป้องกัน Auto-refresh ทับแถวที่เพิ่งสร้าง/แก้ไขแต่ยังไม่ได้ sync
+
+    // Translation Dictionary
+    const I18N = {
+      th: {
+        appSubtitle: "ระบบบันทึกปริมาณและค่าใช้จ่ายการใช้ไฟฟ้า MDB 1",
+        settingsBtn: "ตั้งค่า TOU/FT เดือนนี้",
+        tabMeter: "หน้าแรก [บันทึกเลขมิเตอร์ไฟฟ้า]",
+        tabCost: "หน้าสอง [ปริมาณไฟฟ้าที่ใช้ / ค่าใช้จ่าย]",
+        lblDateRange: "วันที่:",
+        badgeRecordCount: "จำนวนรายการ:",
+        unitDays: "วัน",
+        btnExportPdf: "Export PDF",
+        btnRefresh: "ดึงข้อมูลล่าสุด (Refresh)",
+        kpiTotalKwhLabel: "พลังงานไฟฟ้ารวม (Total)",
+        kpiKwhUnit: "kWh (กิโลวัตต์-ชั่วโมง)",
+        kpiTotalCostLabel: "ค่าใช้จ่ายรวมทั้งสิ้น",
+        currencyBaht: "บาท",
+        kpiTotalFtLabel: "ค่า Ft รวม:",
+        kpiAvgDailyLabel: "เฉลี่ยต่อวัน (Daily Avg)",
+        kpiDailyKwhUnit: "kWh / วัน",
+        kpiDailyCostLabel: "เฉลี่ยค่าไฟ/วัน:",
+        chartTitle: "กราฟแท่งซ้อนสรุปรายวัน",
+        pieChartTitle: "สัดส่วนพลังงาน (Overview)",
+        p1Badge: "หน้าแรก",
+        p1Title: "การบันทึกมิเตอร์ไฟฟ้ารายวัน [ MDB 1 ] ประจำเดือน",
+        thDay: "วันที่",
+        thDayType: "ประเภทวัน",
+        thRecorder: "ผู้บันทึก",
+        thAction: "จัดการ",
+        btnAddRow: "+ เพิ่มแถวตาราง (Create)",
+        p2Badge: "หน้าสอง",
+        p2Title: "สรุปปริมาณไฟฟ้าที่ใช้ / ค่าใช้จ่าย [ MDB 1 ] ประจำเดือน",
+        lblSizeProd: "Size ผลิต:",
+        sizeHoliday: "วันหยุด",
+        thSelectSize: "ระบุ size ที่ผลิต",
+        thEnergyUsed: "ปริมาณไฟฟ้าที่ใช้",
+        thCostUsed: "ค่าใช้จ่าย",
+        thGrandTotal: "รวมทั้งสิ้น",
+        btnCancel: "ยกเลิก",
+        settingsTitle: "ตั้งค่าอัตราค่าไฟฟ้า TOU, Ft",
+        settingsSubtitle: "ค่าที่ถูกตั้งในหน้านี้จะถูกบันทึกเฉพาะเดือนที่เลือกเท่านั้น",
+        btnDelete: "ลบข้อมูล (Delete)",
+        workdayText: "วันทำงาน",
+        weekendText: "วันหยุด ส-อา",
+        holidayText: "วันหยุดราชการ",
+        tabDashboard: "แดชบอร์ด [ภาพรวมกราฟ]",
+        p3Badge: "แดชบอร์ด"
+      },
+      en: {
+        appSubtitle: "MDB 1 Electricity Consumption & Cost Recording System",
+        settingsBtn: "Monthly Settings",
+        tabMeter: "Page 1 [Meter Readings]",
+        tabCost: "Page 2 [Energy & Cost Summary]",
+        lblDateRange: "Date:",
+        badgeRecordCount: "Records:",
+        unitDays: "days",
+        btnExportPdf: "Export PDF",
+        btnRefresh: "Manual Refresh",
+        kpiTotalKwhLabel: "Total Energy Consumption",
+        kpiKwhUnit: "kWh (Kilowatt-Hour)",
+        kpiTotalCostLabel: "Total Electricity Cost",
+        currencyBaht: "THB",
+        kpiTotalFtLabel: "Total Ft Cost:",
+        kpiAvgDailyLabel: "Daily Average",
+        kpiDailyKwhUnit: "kWh / day",
+        kpiDailyCostLabel: "Avg Cost / Day:",
+        chartTitle: "Daily Stacked Bar Chart",
+        pieChartTitle: "Energy Distribution (Overview)",
+        p1Badge: "Page 1",
+        p1Title: "Daily Meter Reading Log [ MDB 1 ] for",
+        thDay: "Day",
+        thDayType: "Day Type",
+        thRecorder: "Recorder",
+        thAction: "Action",
+        btnAddRow: "+ Add Row (Create)",
+        p2Badge: "Page 2",
+        p2Title: "Energy Consumption & Expense Summary [ MDB 1 ] for",
+        lblSizeProd: "Production Size:",
+        sizeHoliday: "Holiday",
+        thSelectSize: "Production Size",
+        thEnergyUsed: "Electricity Used",
+        thCostUsed: "Cost Breakdown",
+        thGrandTotal: "Grand Total",
+        btnCancel: "Cancel",
+        settingsTitle: "Monthly TOU, Ft Rates",
+        settingsSubtitle: "Settings saved here apply ONLY to the selected month.",
+        btnDelete: "Delete",
+        workdayText: "Workday",
+        weekendText: "Weekend",
+        holidayText: "Holiday",
+        tabDashboard: "Dashboard [Overview]",
+        p3Badge: "Dashboard"
+      }
+    };
+
+    const THAI_MONTHS = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+    const ENG_MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    // Tracking Focus to stop Polling while editing
+    document.addEventListener('focusin', (e) => {
+      if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') isEditing = true;
+    });
+    document.addEventListener('focusout', (e) => {
+      isEditing = false;
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initClock();
+      initCharts();
+      applyTranslations();
+      
+      // ตั้งค่าเริ่มต้นของ เดือนและปี ให้เป็น ปัจจุบัน เสมอ
+      const now = new Date();
+      const yearSelect = document.getElementById('selectYear');
+      
+      // สร้าง Option ปี 2026 ถึง 2050
+      yearSelect.innerHTML = '';
+      for (let y = 2026; y <= 2050; y++) {
+        yearSelect.add(new Option(y, y));
+      }
+
+      const currYear = now.getFullYear().toString();
+      // สร้าง Option ปีใหม่ถ้ายังไม่มีใน List
+      if (![...yearSelect.options].some(opt => opt.value === currYear)) {
+         yearSelect.add(new Option(currYear, currYear), yearSelect.options[0]);
+      }
+      yearSelect.value = currYear;
+      document.getElementById('selectMonth').value = (now.getMonth() + 1).toString();
+
+      // Start Polling Interval (Fetch every 1 Hour = 3600000 ms automatically)
+      setInterval(() => {
+        if (document.getElementById('appContainer').classList.contains('flex')) {
+           fetchDataFromGoogleSheets(false);
+        }
+      }, 3600000);
+    });
+
+    // Start App Handler (แทนที่ Login เดิม)
+    function startApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appContainer').classList.remove('hidden');
+      document.getElementById('appContainer').classList.add('flex');
+      
+      onFilterChange(); // Load defaults and trigger fetch
+      fetchDataFromGoogleSheets(true); // Manually trigger first fetch with loading screen
+    }
+
+    function logoutApp() {
+      document.getElementById('appContainer').classList.add('hidden');
+      document.getElementById('appContainer').classList.remove('flex');
+      document.getElementById('loginScreen').classList.remove('hidden');
+    }
+
+    // ======================== GOOGLE SHEETS FETCH (doGet) ========================
+    async function fetchDataFromGoogleSheets(isManual = false) {
+      // Prevent overwriting user input during automatic polling OR if data is waiting to sync
+      if (!isManual && (isEditing || hasUnsavedChanges)) return; 
+
+      const overlay = document.getElementById('loadingOverlay');
+      if (isManual) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+      }
+
+      try {
+        const { year, month, key } = getSelectedPeriod();
+        
+        if (month === 'all') {
+          // โหมดดึงข้อมูลทุกเดือน (1-12)
+          const fetchPromises = [];
+          for (let m = 1; m <= 12; m++) {
+            fetchPromises.push(
+              fetch(AppConfig.scriptUrl + `?action=getdata&year=${year}&month=${m}`, { method: 'GET', redirect: 'follow' })
+                .then(res => res.json())
+                .then(data => ({ month: m, data: data }))
+            );
+          }
+          const results = await Promise.all(fetchPromises);
+          
+          let allRecords = [];
+          results.forEach(res => {
+            if (res.data.status === 'success') {
+              const parsed = parseRawToRecords(res.data.meterData, res.data.costData, res.month);
+              allRecords.push(...parsed);
+            }
+          });
+          
+          electricityData[key] = allRecords;
+          renderAllTables();
+          updateCharts();
+          if (isManual) showToast('โหลดข้อมูลรวมทั้งปีสำเร็จ', 'success');
+
+        } else {
+          // โหมดดึงข้อมูลรายเดือนตามปกติ
+          const response = await fetch(AppConfig.scriptUrl + `?action=getdata&year=${year}&month=${month}`, {
+            method: 'GET',
+            redirect: 'follow'
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          
+          if (result.status === 'success') {
+            electricityData[key] = parseRawToRecords(result.meterData, result.costData, parseInt(month));
+            renderAllTables();
+            updateCharts();
+            if (isManual) showToast('รีเฟรชข้อมูลสำเร็จ', 'success');
+          } else {
+            console.error("Fetch error:", result.message);
+            throw new Error(result.message);
+          }
+        }
+      } catch (err) {
+        console.error("Connection Error:", err);
+        if (isManual) {
+          showToast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (โปรดเช็คการ Deploy Apps Script)', 'error');
+        }
+        
+        // Fallback: If fetch fails, load local mock data so UI doesn't crash completely
+        const { key } = getSelectedPeriod();
+        if (!electricityData[key] || electricityData[key].length === 0) {
+          console.warn("Loading fallback mock data for preview...");
+          loadMockData(key);
+          renderAllTables();
+          updateCharts();
+        }
+      } finally {
+        if (isManual) {
+          overlay.classList.add('hidden');
+          overlay.classList.remove('flex');
+        }
+      }
+    }
+
+    function loadMockData(key) {
+      electricityData[key] = [
+        { day: 1, dayType: 'workday', size: '1000', main: { t09: 145.1023, t22: 145.1085 }, mcc1: { t09: 32.1102, t22: 32.1120 }, mcc2: { t09: 41.2201, t22: 41.2230 }, mcc3: { t09: 38.0011, t22: 38.0035 }, mcc4: { t09: 33.7710, t22: 33.7730 }, isLocked: false },
+        { day: 2, dayType: 'workday', size: '1000', main: { t09: 145.1120, t22: 145.1190 }, mcc1: { t09: 32.1120, t22: 32.1140 }, mcc2: { t09: 41.2230, t22: 41.2260 }, mcc3: { t09: 38.0035, t22: 38.0060 }, mcc4: { t09: 33.7730, t22: 33.7755 }, isLocked: false },
+        { day: 3, dayType: 'weekend', size: '100', main: { t09: 145.1225, t22: 145.1278 }, mcc1: { t09: 32.1140, t22: 32.1158 }, mcc2: { t09: 41.2260, t22: 41.2285 }, mcc3: { t09: 38.0060, t22: 38.0080 }, mcc4: { t09: 33.7755, t22: 33.7770 }, isLocked: true }
+      ];
+    }
+
+    // แปลงข้อมูล Array 2D ให้กลายเป็น Object เพื่อนำไปแสดงผล
+    function parseRawToRecords(meterRows, costRows, monthNum) {
+      let newData = [];
+      for(let i=0; i<meterRows.length; i++) {
+        let m = meterRows[i];
+        let c = costRows[i] || []; 
+        if(!m || m.length < 12) continue; // Skip incomplete rows
+        // ข้ามแถวที่เป็น Header 
+        if(isNaN(parseInt(m[0])) || m[0] === 'วันที่' || m[0] === 'Day') continue;
+        
+        let parsedRecorder = (m.length > 13) ? m[13] : '';
+        if (parsedRecorder && !globalRecorderOptions.includes(parsedRecorder)) {
+            globalRecorderOptions.push(parsedRecorder); 
+        }
+
+        newData.push({
+          day: parseInt(m[0]),
+          month: monthNum,
+          displayDate: `${m[0]}/${monthNum}`, // เพิ่ม Property สำหรับแสดงวันที่/เดือน
+          dayType: m[1] || 'workday',
+          size: (c && c[1]) ? c[1] : '1000',
+          main: { t09: parseFloat(m[2])||0, t22: parseFloat(m[3])||0 },
+          mcc1: { t09: parseFloat(m[4])||0, t22: parseFloat(m[5])||0 },
+          mcc2: { t09: parseFloat(m[6])||0, t22: parseFloat(m[7])||0 },
+          mcc3: { t09: parseFloat(m[8])||0, t22: parseFloat(m[9])||0 },
+          mcc4: { t09: parseFloat(m[10])||0, t22: parseFloat(m[11])||0 },
+          isLocked: (m[12] == 1 || m[12] == 'true' || m[12] === true),
+          recorder: parsedRecorder
+        });
+      }
+      return newData;
+    }
+
+    // ======================== APP LOGIC & RENDERING ========================
+    function initClock() {
+      const update = () => {
+        const now = new Date();
+        const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+        document.getElementById('currentDateStr').innerText = now.toLocaleDateString(currentLang === 'th' ? 'th-TH' : 'en-US', dateOptions);
+        document.getElementById('currentTimeStr').innerText = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + (currentLang === 'th' ? ' น.' : '');
+      };
+      update();
+      setInterval(update, 1000);
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      const btnTh = document.getElementById('langBtnTh');
+      const btnEn = document.getElementById('langBtnEn');
+      if (lang === 'th') {
+        btnTh.className = "px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-600 text-white shadow-sm transition";
+        btnEn.className = "px-2.5 py-1 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition";
+      } else {
+        btnEn.className = "px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-600 text-white shadow-sm transition";
+        btnTh.className = "px-2.5 py-1 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition";
+      }
+      applyTranslations();
+      renderAllTables();
+      updateCharts();
+    }
+
+    function applyTranslations() {
+      const t = I18N[currentLang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+          if (el.tagName === 'INPUT' && el.type === 'button') el.value = t[key];
+          else el.innerText = t[key];
+        }
+      });
+      updateCharts();
+    }
+
+    function switchMainTab(tab) {
+      currentMainTab = tab;
+      const isP1 = tab === 'page1';
+      const isP2 = tab === 'page2';
+      const isDash = tab === 'dashboard';
+
+      document.getElementById('page1Section').classList.toggle('hidden', !isP1);
+      document.getElementById('page2Section').classList.toggle('hidden', !isP2);
+      document.getElementById('dashboardSection').classList.toggle('hidden', !isDash);
+      if (isDash) {
+        document.getElementById('dashboardSection').classList.add('flex');
+      } else {
+        document.getElementById('dashboardSection').classList.remove('flex');
+      }
+      
+      const tabP1Btn = document.getElementById('tabBtnPage1');
+      const tabP2Btn = document.getElementById('tabBtnPage2');
+      const tabDashBtn = document.getElementById('tabBtnDashboard');
+
+      const activeClass = "px-5 py-2.5 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2 transition whitespace-nowrap";
+      const inactiveClass = "px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition whitespace-nowrap";
+
+      tabP1Btn.className = isP1 ? activeClass : inactiveClass;
+      tabP2Btn.className = isP2 ? activeClass : inactiveClass;
+      tabDashBtn.className = isDash ? activeClass : inactiveClass;
+    }
+
+    function getSelectedPeriod() {
+      const year = document.getElementById('selectYear').value;
+      const month = document.getElementById('selectMonth').value;
+      return { year, month, key: `${year}-${month}` };
+    }
+
+    function getCurrentSettings() {
+      const { key } = getSelectedPeriod();
+      return monthlySettingsStore[key] || monthlySettingsStore['default'];
+    }
+
+    function onFilterChange() {
+      const { year, month } = getSelectedPeriod();
+      const monthName = month === 'all' 
+        ? (currentLang === 'th' ? 'ทุกเดือน' : 'All Months') 
+        : (currentLang === 'th' ? THAI_MONTHS[month] : ENG_MONTHS[month]);
+
+      document.querySelectorAll('.currentMonthText').forEach(el => { el.innerText = `${monthName} ${year}`; });
+      
+      let sDay = parseInt(document.getElementById('filterStartDay').value) || 1;
+      let eDay = parseInt(document.getElementById('filterEndDay').value) || 31;
+      if(sDay > eDay) document.getElementById('filterEndDay').value = sDay;
+
+      // When period changes, load data from server for new month
+      fetchDataFromGoogleSheets(true);
+    }
+
+    function resetFilters() {
+      const now = new Date();
+      document.getElementById('selectYear').value = now.getFullYear().toString();
+      document.getElementById('selectMonth').value = (now.getMonth() + 1).toString();
+      document.getElementById('filterStartDay').value = "1";
+      document.getElementById('filterEndDay').value = "31";
+      onFilterChange();
+    }
+
+    function isReadingInvalid(records, idx, field, time) {
+      if (idx === 0 && time === 't09') return false; 
+      
+      let currentVal = parseFloat(records[idx]?.[field]?.[time]);
+      if (isNaN(currentVal) || currentVal === 0) return false;
+
+      let prevVal;
+      if (time === 't22') {
+        prevVal = parseFloat(records[idx]?.[field]?.['t09']);
+      } else if (time === 't09' && idx > 0) {
+        prevVal = parseFloat(records[idx-1]?.[field]?.['t22']);
+      }
+      return (!isNaN(prevVal) && currentVal < prevVal);
+    }
+
+    function calculateRecordTOU(record, allRecords, index) {
+      const settings = getCurrentSettings();
+      const mult = settings.multiplier;
+      const t09 = parseFloat(record.main?.t09 || 0);
+      const t22 = parseFloat(record.main?.t22 || 0);
+      const isWorkday = record.dayType === 'workday';
+
+      let peakKWh = 0, offPeakKWh = 0, holidayKWh = 0;
+
+      // คำนวณเฉพาะเมื่อมีการกรอกค่ามิเตอร์แล้วทั้งสองช่วงเวลา (ค่า > 0) เพื่อป้องกันค่าเพี้ยน
+      if (isWorkday) {
+        if (t09 > 0 && t22 > 0) {
+          peakKWh = Math.abs(t22 - t09) * mult;
+        }
+        
+        let next09 = (allRecords && allRecords[index + 1]) ? parseFloat(allRecords[index + 1].main?.t09 || 0) : 0;
+        if (t22 > 0 && next09 > 0) {
+          offPeakKWh = Math.abs(next09 - t22) * mult;
+        } else if (t09 > 0 && t22 > 0) {
+          // Fallback กรณีวันถัดไปยังไม่มีการกรอกข้อมูล
+          offPeakKWh = Math.abs(t22 - t09) * 0.4 * mult;
+        }
+      } else {
+        peakKWh = 0;
+        if (t09 > 0 && t22 > 0) {
+          holidayKWh = Math.abs(t22 - t09) * mult;
+        }
+      }
+
+      const totalKWh = peakKWh + offPeakKWh + holidayKWh;
+      const peakCost = peakKWh * settings.peakRate;
+      const offPeakCost = offPeakKWh * settings.offPeakRate;
+      const holidayCost = holidayKWh * settings.holidayRate;
+      const subtotalCost = peakCost + offPeakCost + holidayCost;
+      const ftCost = totalKWh * settings.ftRate;
+      const totalCost = subtotalCost + ftCost;
+
+      return { peakKWh, offPeakKWh, holidayKWh, totalKWh, peakCost, offPeakCost, holidayCost, subtotalCost, ftCost, totalCost };
+    }
+
+    function renderAllTables() {
+      const { year, month, key } = getSelectedPeriod();
+      const isAllMonths = month === 'all';
+
+      if (!electricityData[key]) electricityData[key] = [];
+      let records = electricityData[key];
+      
+      // เรียงลำดับตามเดือน แล้วตามด้วยวัน
+      records.sort((a, b) => (a.month || 0) - (b.month || 0) || a.day - b.day);
+
+      const startDay = parseInt(document.getElementById('filterStartDay').value) || 1;
+      const endDay = parseInt(document.getElementById('filterEndDay').value) || 31;
+      
+      const mappedRecords = records.map((rec, index) => ({ ...rec, originalIndex: index }));
+      // ถ้าเป็นโหมดแสดงทุกเดือน ไม่ต้องกรองวัน (แสดงหมดทั้งปี)
+      const filteredRecords = isAllMonths ? mappedRecords : mappedRecords.filter(r => r.day >= startDay && r.day <= endDay);
+
+      const meterBody = document.getElementById('meterTableBody');
+      const summaryBody = document.getElementById('summaryTableBody');
+      const summaryFoot = document.getElementById('summaryTableFoot');
+
+      document.getElementById('recordCountBadge').innerText = filteredRecords.length;
+
+      let sumPeakKWh = 0, sumOffPeakKWh = 0, sumHolidayKWh = 0, sumTotalKWh = 0;
+      let sumPeakCost = 0, sumOffPeakCost = 0, sumHolidayCost = 0, sumSubtotalCost = 0, sumFtCost = 0, sumTotalCost = 0;
+      let validDaysCount = 0; // ตัวแปรสำหรับนับเฉพาะวันที่มีการใช้ไฟฟ้าจริง (ไม่รวมวันที่เพิ่งกดเพิ่มแถวและยังไม่กรอก)
+      let meterRowsHtml = '';
+      let summaryRowsHtml = '';
+
+      // Set Up the Global arrays to POST to Google Sheets (เพิ่มคอลัมน์ผู้บันทึก)
+      meterDataArrays = [
+        ['วันที่', 'ประเภทวัน', 'Main 09.00', 'Main 22.00', 'MCC01 09.00', 'MCC01 22.00', 'MCC02 09.00', 'MCC02 22.00', 'MCC03 09.00', 'MCC03 22.00', 'MCC04 09.00', 'MCC04 22.00', 'Locked', 'ผู้บันทึก']
+      ];
+      costDataArrays = [
+        ['วันที่', 'Size ผลิต', 'Peak (kWh)', 'Off-Peak (kWh)', 'Holiday (kWh)', 'Total (kWh)', 'Peak (THB)', 'Off-Peak (THB)', 'Holiday (THB)', 'Subtotal (THB)', 'ค่า FT (THB)', 'รวมทั้งสิ้น (THB)']
+      ];
+
+      if (filteredRecords.length === 0) {
+        const emptyRow = `<tr><td colspan="14" class="p-8 text-slate-400 font-medium">${currentLang === 'th' ? 'ไม่มีข้อมูล กด "+ เพิ่มแถว" หรือกด "รีเฟรชข้อมูล"' : 'No records. Add Row or Refresh.'}</td></tr>`;
+        meterBody.innerHTML = emptyRow;
+        summaryBody.innerHTML = emptyRow;
+        summaryFoot.innerHTML = '';
+        updateKPIs(0, 0, 0, 0, 0);
+        return;
+      }
+
+      const t = I18N[currentLang];
+
+      filteredRecords.forEach((rec) => {
+        const originalIndex = rec.originalIndex;
+        // Use the full records array for calculation context (like next day's 09:00 value)
+        const calc = calculateRecordTOU(rec, records, originalIndex);
+
+        // นับเฉพาะวันที่มีข้อมูลแล้ว เพื่อนำไปหาค่าเฉลี่ย KPI 
+        if (calc.totalKWh > 0) validDaysCount++;
+
+        sumPeakKWh += calc.peakKWh; sumOffPeakKWh += calc.offPeakKWh; sumHolidayKWh += calc.holidayKWh; sumTotalKWh += calc.totalKWh;
+        sumPeakCost += calc.peakCost; sumOffPeakCost += calc.offPeakCost; sumHolidayCost += calc.holidayCost; 
+        sumSubtotalCost += calc.subtotalCost; sumFtCost += calc.ftCost; sumTotalCost += calc.totalCost;
+
+        meterDataArrays.push([rec.day, rec.dayType, rec.main?.t09, rec.main?.t22, rec.mcc1?.t09, rec.mcc1?.t22, rec.mcc2?.t09, rec.mcc2?.t22, rec.mcc3?.t09, rec.mcc3?.t22, rec.mcc4?.t09, rec.mcc4?.t22, rec.isLocked ? 1 : 0, rec.recorder || '']);
+        costDataArrays.push([rec.day, rec.size, formatNum(calc.peakKWh,1), formatNum(calc.offPeakKWh,1), formatNum(calc.holidayKWh,1), formatNum(calc.totalKWh,1), formatNum(calc.peakCost,1), formatNum(calc.offPeakCost,1), formatNum(calc.holidayCost,1), formatNum(calc.subtotalCost,1), formatNum(calc.ftCost,1), formatNum(calc.totalCost,1)]);
+
+        const rowBg = originalIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
+
+        // ฟังก์ชันประมวลผลคลาสสี กรอบแดงเมื่อค่าเป็น 0 หรือค่าน้อยกว่าปกติ
+        const getFieldClass = (idx, parent, sub, val) => {
+          if (val === 0) return 'border-red-500 bg-red-50 text-red-700 font-bold';
+          if (isReadingInvalid(records, idx, parent, sub)) return 'border-red-500 bg-red-50 text-red-700';
+          return 'text-emerald-900';
+        };
+
+        const vM09 = getFieldClass(originalIndex, 'main', 't09', rec.main?.t09);
+        const vM22 = getFieldClass(originalIndex, 'main', 't22', rec.main?.t22);
+        const vC1_09 = getFieldClass(originalIndex, 'mcc1', 't09', rec.mcc1?.t09);
+        const vC1_22 = getFieldClass(originalIndex, 'mcc1', 't22', rec.mcc1?.t22);
+        const vC2_09 = getFieldClass(originalIndex, 'mcc2', 't09', rec.mcc2?.t09);
+        const vC2_22 = getFieldClass(originalIndex, 'mcc2', 't22', rec.mcc2?.t22);
+        const vC3_09 = getFieldClass(originalIndex, 'mcc3', 't09', rec.mcc3?.t09);
+        const vC3_22 = getFieldClass(originalIndex, 'mcc3', 't22', rec.mcc3?.t22);
+        const vC4_09 = getFieldClass(originalIndex, 'mcc4', 't09', rec.mcc4?.t09);
+        const vC4_22 = getFieldClass(originalIndex, 'mcc4', 't22', rec.mcc4?.t22);
+
+        const isLock = isAllMonths || (rec.isLocked ? true : false); // ล็อกข้อมูลเสมอถ้าอยู่ในโหมดรวมทุกเดือน
+        const lockAttr = isLock ? 'disabled' : '';
+        const lockClass = isLock ? 'bg-slate-100/50 text-slate-400 cursor-not-allowed opacity-70 border-slate-200' : 'bg-white hover:border-emerald-500';
+        const lockIcon = isLock ? '<i class="fa-solid fa-lock"></i>' : '<i class="fa-solid fa-lock-open text-emerald-600/70"></i>';
+        const lockBtnColor = isLock ? 'text-amber-700 bg-amber-100 hover:bg-amber-200' : 'text-slate-400 bg-slate-100 hover:bg-slate-200';
+
+        // ชุดปุ่มจัดการ
+        let actionButtons = '';
+        if (isAllMonths) {
+          actionButtons = `<span class="text-slate-400 font-bold text-[10px]">Read-only</span>`;
+        } else {
+          actionButtons = `
+            <button onclick="forceSaveRow(${originalIndex})" class="text-white bg-emerald-500 hover:bg-emerald-600 rounded p-1.5 transition text-[11px]" title="${currentLang === 'th' ? 'บันทึกแถวนี้' : 'Save'}"><i class="fa-solid fa-check"></i></button>
+            <button onclick="toggleRowLock(${originalIndex})" class="${lockBtnColor} rounded p-1.5 transition text-[11px]" title="${currentLang === 'th' ? 'ล็อค/ปลดล็อค' : 'Lock/Unlock'}">${lockIcon}</button>
+            <button onclick="confirmDeleteRow(${originalIndex})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded p-1.5 transition text-[11px]" title="${currentLang === 'th' ? 'ลบแถว' : 'Delete'}"><i class="fa-solid fa-trash-can"></i></button>
+          `;
+        }
+
+        const dateDisplay = isAllMonths ? rec.displayDate : rec.day;
+
+        // Recorder Dropdown Options
+        let recorderOptions = globalRecorderOptions.map(name => `<option value="${name}" ${rec.recorder === name ? 'selected' : ''}>${name}</option>`).join('');
+        if (rec.recorder && !globalRecorderOptions.includes(rec.recorder)) {
+            recorderOptions += `<option value="${rec.recorder}" selected>${rec.recorder}</option>`;
+        }
+        recorderOptions += `<option value="other">อื่นๆ (เพิ่มใหม่)...</option>`;
+
+        // TABLE 1
+        meterRowsHtml += `
+          <tr class="${rowBg} hover:bg-emerald-50/50 transition">
+            <td class="p-1 border-r border-slate-200 font-bold text-slate-700">
+              <input type="text" value="${dateDisplay}" ${isAllMonths ? 'disabled' : `onchange="updateRowField(${originalIndex}, 'day', this.value)" min="1" max="31" type="number"`} class="grid-input font-bold text-slate-800 text-center w-12 mx-auto border border-slate-200 ${lockClass}" ${lockAttr}>
+            </td>
+            <td class="p-1 border-r border-slate-200">
+              <select onchange="updateRowField(${originalIndex}, 'dayType', this.value)" class="grid-input text-[11px] font-medium border border-slate-200 rounded ${lockClass}" ${lockAttr}>
+                <option value="workday" ${rec.dayType === 'workday' ? 'selected' : ''}>${t.workdayText}</option>
+                <option value="weekend" ${rec.dayType === 'weekend' ? 'selected' : ''}>${t.weekendText}</option>
+                <option value="holiday" ${rec.dayType === 'holiday' ? 'selected' : ''}>${t.holidayText}</option>
+              </select>
+            </td>
+            <td class="p-1 border-r border-slate-200">
+              <select onchange="handleRecorderChange(${originalIndex}, this.value)" class="grid-input text-[11px] font-medium border border-slate-200 rounded ${lockClass}" ${lockAttr}>
+                <option value="">- เลือกผู้บันทึก -</option>
+                ${recorderOptions}
+              </select>
+            </td>
+            <td class="p-1 border-r border-slate-200 bg-emerald-50/20"><input type="text" readonly value="${formatInputVal(rec.main?.t09)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'main', 't09', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vM09} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200 bg-emerald-50/20"><input type="text" readonly value="${formatInputVal(rec.main?.t22)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'main', 't22', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vM22} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc1?.t09)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc1', 't09', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC1_09} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc1?.t22)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc1', 't22', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC1_22} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc2?.t09)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc2', 't09', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC2_09} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc2?.t22)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc2', 't22', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC2_22} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc3?.t09)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc3', 't09', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC3_09} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc3?.t22)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc3', 't22', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC3_22} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc4?.t09)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc4', 't09', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC4_09} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 border-r border-slate-200"><input type="text" readonly value="${formatInputVal(rec.mcc4?.t22)}" onclick="${isLock ? '' : `openEditPopup(${originalIndex}, 'mcc4', 't22', ${rec.day})`}" class="grid-input font-mono cursor-pointer ${vC4_22} ${isLock ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'}" placeholder="0.0000" ${lockAttr}></td>
+            <td class="p-1 text-center flex items-center justify-center gap-1 flex-wrap">
+              ${actionButtons}
+            </td>
+          </tr>
+        `;
+
+        const sizeClass = rec.size === '1000' ? 'badge-size-1000' : (rec.size === '100' ? 'badge-size-100' : (rec.size === 'holiday' ? 'badge-size-holiday' : 'badge-size-other'));
+        const displayHoliday = currentLang === 'th' ? 'วันหยุด' : 'Holiday';
+
+        // TABLE 2: Format to 1 Decimal
+        summaryRowsHtml += `
+          <tr class="${rowBg} hover:bg-blue-50/50 transition">
+            <td class="p-2 border-r border-slate-200 font-bold text-slate-700">${dateDisplay}</td>
+            <td class="p-1.5 border-r border-slate-200">
+              <select onchange="updateRowField(${originalIndex}, 'size', this.value)" class="w-full text-center px-1 py-1 text-[11px] font-bold rounded-md ${sizeClass} shadow-xs cursor-pointer outline-none border border-transparent" ${lockAttr}>
+            <td class="p-1.5 border-r border-slate-200">
+              <select onchange="updateRowField(${originalIndex}, 'size', this.value)" class="w-full text-center px-1 py-1 text-[11px] font-bold rounded-md ${sizeClass} shadow-xs cursor-pointer outline-none border border-transparent">
+                <option value="1000" ${rec.size === '1000' ? 'selected' : ''}>1000</option>
+                <option value="100" ${rec.size === '100' ? 'selected' : ''}>100</option>
+                <option value="other" ${rec.size === 'other' ? 'selected' : ''}>other</option>
+                <option value="holiday" ${rec.size === 'holiday' ? 'selected' : ''}>${displayHoliday}</option>
+              </select>
+            </td>
+            <!-- kWh (1 Decimal) -->
+            <td class="p-2 border-r border-slate-200 font-mono">${formatNum(calc.peakKWh, 1)}</td>
+            <td class="p-2 border-r border-slate-200 font-mono">${formatNum(calc.offPeakKWh, 1)}</td>
+            <td class="p-2 border-r border-slate-200 font-mono">${formatNum(calc.holidayKWh, 1)}</td>
+            <td class="p-2 border-r border-slate-200 font-bold font-mono bg-slate-50/70">${formatNum(calc.totalKWh, 1)}</td>
+            <!-- THB (1 Decimal) -->
+            <td class="p-2 border-r border-slate-200 font-mono">${formatNum(calc.peakCost, 1)}</td>
+            <td class="p-2 border-r border-slate-200 font-mono">${formatNum(calc.offPeakCost, 1)}</td>
+            <td class="p-2 border-r border-slate-200 font-mono">${formatNum(calc.holidayCost, 1)}</td>
+            <td class="p-2 border-r border-slate-200 font-bold font-mono bg-slate-50/70">${formatNum(calc.subtotalCost, 1)}</td>
+            <td class="p-2 border-r border-slate-200 text-amber-800 font-medium font-mono">${formatNum(calc.ftCost, 1)}</td>
+            <!-- Total (1 Decimal) -->
+            <td class="p-2 border-r border-slate-200 font-bold text-emerald-700 bg-emerald-50/40 font-mono">${formatNum(calc.totalCost, 1)}</td>
+            <td class="p-1 text-center">
+              ${isAllMonths ? '-' : `<button onclick="confirmDeleteRow(${originalIndex})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>`}
+            </td>
+          </tr>
+        `;
+      });
+
+      meterBody.innerHTML = meterRowsHtml;
+      summaryBody.innerHTML = summaryRowsHtml;
+
+      summaryFoot.innerHTML = `
+        <tr class="bg-slate-200 text-slate-900 border-t-2 border-slate-400 font-bold text-xs">
+          <td colspan="2" class="p-2.5 text-center font-black">${currentLang === 'th' ? 'รวม (Total)' : 'Total'}</td>
+          <td class="p-2.5 border-r border-slate-300 font-bold text-emerald-800 font-mono">${formatNum(sumPeakKWh, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-bold text-blue-800 font-mono">${formatNum(sumOffPeakKWh, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-bold text-amber-800 font-mono">${formatNum(sumHolidayKWh, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-black text-slate-900 bg-slate-300/60 font-mono">${formatNum(sumTotalKWh, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-bold font-mono">${formatNum(sumPeakCost, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-bold font-mono">${formatNum(sumOffPeakCost, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-bold font-mono">${formatNum(sumHolidayCost, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-black bg-slate-300/60 font-mono">${formatNum(sumSubtotalCost, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-bold text-amber-900 font-mono">${formatNum(sumFtCost, 1)}</td>
+          <td class="p-2.5 border-r border-slate-300 font-black text-emerald-800 bg-emerald-100 font-mono">${formatNum(sumTotalCost, 1)}</td>
+          <td class="p-2.5"></td>
+        </tr>
+      `;
+
+      // นำ validDaysCount ไปใช้แทน filteredRecords.length เพื่อความแม่นยำของ Daily Average
+      updateKPIs(sumTotalKWh, sumTotalCost, sumFtCost, validDaysCount, sumPeakKWh);
+
+      window._currentDataSums = { sumPeakKWh, sumOffPeakKWh, sumHolidayKWh, sumPeakCost, sumOffPeakCost, sumHolidayCost };
+
+      // ซ่อนปุ่ม "เพิ่มแถว" หากอยู่ในโหมดรวมทั้งปี
+      const btnAdd1 = document.querySelector('#page1Section button[onclick="addNewTableRow()"]');
+      const btnAdd2 = document.querySelector('#page2Section button[onclick="addNewTableRow()"]');
+      if (btnAdd1) btnAdd1.style.display = isAllMonths ? 'none' : 'flex';
+      if (btnAdd2) btnAdd2.style.display = isAllMonths ? 'none' : 'flex';
+    }
+
+    function updateKPIs(totalKWh, totalCost, totalFt, count, peakKWh) {
+      document.getElementById('kpiTotalKWh').innerText = formatNum(totalKWh, 1);
+      document.getElementById('kpiTotalCost').innerText = formatNum(totalCost, 1);
+      document.getElementById('kpiTotalFtCost').innerText = formatNum(totalFt, 1) + ' THB';
+
+      const peakRatio = totalKWh > 0 ? ((peakKWh / totalKWh) * 100).toFixed(1) : 0;
+      const offPeakRatio = totalKWh > 0 ? (100 - peakRatio).toFixed(1) : 0;
+      document.getElementById('kpiPeakRatio').innerText = peakRatio + '%';
+      document.getElementById('kpiOffPeakRatio').innerText = offPeakRatio + '%';
+
+      const avgKWh = count > 0 ? (totalKWh / count) : 0;
+      const avgCost = count > 0 ? (totalCost / count) : 0;
+      document.getElementById('kpiAvgDailyKWh').innerText = formatNum(avgKWh, 1);
+      document.getElementById('kpiAvgDailyCost').innerText = formatNum(avgCost, 1) + ' THB';
+    }
+
+    // แจ้งเตือน UI ว่ามีการแก้ไขข้อมูล ต้องกดปุ่ม ✔️ เพื่อบันทึก
+    function markUnsavedChanges() {
+      hasUnsavedChanges = true;
+      const syncEl = document.getElementById('syncIndicator');
+      syncEl.classList.remove('hidden');
+      syncEl.classList.add('flex');
+      syncEl.innerHTML = '<i class="fa-solid fa-circle-exclamation animate-pulse"></i><span class="hidden sm:inline">มีข้อมูลยังไม่บันทึก (กด ✔️)</span>';
+      syncEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[10px] sm:text-xs font-bold border border-rose-200 transition-opacity shadow-sm";
+    }
+
+    // Execute Sync/Update/Create/Delete logic to Backend
+    function performDataSync() {
+      const { year, month } = getSelectedPeriod();
+      const params = new URLSearchParams();
+      params.append('action', 'syncData'); // Universal update action based on UI state
+      params.append('year', year);   // ส่งค่าปีไป
+      params.append('month', month); // ส่งค่าเดือนไป
+      params.append('meterData', JSON.stringify(meterDataArrays));
+      params.append('costData', JSON.stringify(costDataArrays));
+
+      const syncEl = document.getElementById('syncIndicator');
+      syncEl.classList.remove('hidden');
+      syncEl.classList.add('flex');
+      syncEl.innerHTML = '<i class="fa-solid fa-arrows-rotate animate-spin"></i><span class="hidden sm:inline">กำลังบันทึกและแจ้งเตือน...</span>';
+      syncEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 text-[10px] sm:text-xs font-bold border border-amber-200 transition-opacity shadow-sm";
+
+      fetch(AppConfig.scriptUrl, { method: 'POST', body: params, redirect: 'follow' })
+      .then(res => {
+        if(!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(data => {
+        syncEl.classList.add('hidden');
+        syncEl.classList.remove('flex');
+        if (data.status !== 'success') {
+          console.error('Save err:', data.message);
+          showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+        } else {
+          hasUnsavedChanges = false; // ปลดล็อกให้ Auto-refresh กลับมาทำงานได้ตามปกติเมื่อซิงค์เสร็จ
+          showToast('บันทึกข้อมูลและส่งแจ้งเตือน LINE เรียบร้อย', 'success');
+        }
+      }).catch(err => {
+        console.error('Save err:', err);
+        syncEl.classList.add('hidden');
+        syncEl.classList.remove('flex');
+        hasUnsavedChanges = false; // ปลดล็อกแม้จะเกิด Error เพื่อให้ระบบดึงข้อมูลใหม่ได้
+        showToast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+      });
+    }
+
+    function forceSaveRow(idx) {
+      performDataSync(); // Force an immediate save when checkmark is clicked
+    }
+
+    function handleRecorderChange(idx, val) {
+      if (val === 'other') {
+        tempRecorderRowIdx = idx;
+        document.getElementById('newRecorderName').value = '';
+        document.getElementById('addRecorderModal').classList.remove('hidden');
+      } else {
+        updateRowField(idx, 'recorder', val);
+      }
+    }
+
+    function closeAddRecorderModal() {
+      document.getElementById('addRecorderModal').classList.add('hidden');
+      renderAllTables(); // Reset select back to its previous state
+    }
+
+    function saveNewRecorder() {
+      const newName = document.getElementById('newRecorderName').value.trim();
+      if (newName) {
+        if (!globalRecorderOptions.includes(newName)) {
+          globalRecorderOptions.push(newName);
+        }
+        updateRowField(tempRecorderRowIdx, 'recorder', newName);
+      }
+      closeAddRecorderModal();
+    }
+
+    function updateRowField(idx, field, value) {
+      const { key } = getSelectedPeriod();
+      if (!electricityData[key] || !electricityData[key][idx]) return;
+      if (field === 'day') electricityData[key][idx].day = parseInt(value) || 1;
+      else electricityData[key][idx][field] = value;
+      renderAllTables();
+      updateCharts();
+      markUnsavedChanges(); // Wait for user to click checkmark
+    }
+
+    function updateNestedField(idx, parentKey, subKey, value) {
+      const { key } = getSelectedPeriod();
+      if (!electricityData[key] || !electricityData[key][idx]) return;
+      if (!electricityData[key][idx][parentKey]) electricityData[key][idx][parentKey] = {};
+      electricityData[key][idx][parentKey][subKey] = parseFloat(value) || 0;
+      renderAllTables();
+      updateCharts();
+      markUnsavedChanges(); // Wait for user to click checkmark
+    }
+
+    function toggleRowLock(idx) {
+      const { key } = getSelectedPeriod();
+      if (!electricityData[key] || !electricityData[key][idx]) return;
+      // สลับสถานะล็อค
+      electricityData[key][idx].isLocked = !electricityData[key][idx].isLocked;
+      renderAllTables();
+      markUnsavedChanges();
+    }
+
+    function addNewTableRow() {
+      const { key } = getSelectedPeriod();
+      if (!electricityData[key]) electricityData[key] = [];
+      const records = electricityData[key];
+      const nextDay = records.length > 0 ? Math.max(...records.map(r => r.day)) + 1 : 1;
+
+      records.push({
+        day: nextDay <= 31 ? nextDay : 31,
+        dayType: 'workday',
+        size: '1000',
+        main: { t09: 0, t22: 0 },
+        mcc1: { t09: 0, t22: 0 },
+        mcc2: { t09: 0, t22: 0 },
+        mcc3: { t09: 0, t22: 0 },
+        mcc4: { t09: 0, t22: 0 },
+        isLocked: false // แถวใหม่ยังไม่ถูกล็อค
+      });
+      renderAllTables();
+      updateCharts();
+      markUnsavedChanges(); // Wait for user to fill and click checkmark
+    }
+
+    function confirmDeleteRow(idx) {
+      document.getElementById('deleteId').value = '';
+      document.getElementById('deletePass').value = '';
+      document.getElementById('deleteError').classList.add('hidden');
+
+      confirmCallback = () => {
+        const { key } = getSelectedPeriod();
+        electricityData[key].splice(idx, 1);
+        renderAllTables();
+        updateCharts();
+        performDataSync(); // Force sync immediately on delete
+      };
+      document.getElementById('confirmModalMessage').innerText = currentLang === 'th' ? `คุณแน่ใจหรือไม่ว่าต้องการลบแถวนี้ การทำงานนี้จะส่งผลถึง Database ทันที?` : `Do you want to delete this row?`;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal(proceed) {
+      if (proceed) {
+        const id = document.getElementById('deleteId').value.trim().toLowerCase();
+        const pass = document.getElementById('deletePass').value.trim().toLowerCase();
+        
+        // ตรวจสอบ Password: ทั้งพิมพ์เล็ก พิมพ์ใหญ่ อนุญาตให้ผ่าน (.toLowerCase() แล้ว)
+        if (id === 'admin' && pass === 'utadmin') {
+          // Success Validation
+          document.getElementById('confirmModal').classList.add('hidden');
+          if (confirmCallback) confirmCallback();
+          confirmCallback = null;
+        } else {
+          // Error
+          document.getElementById('deleteError').classList.remove('hidden');
+        }
+      } else {
+        // Cancel
+        document.getElementById('confirmModal').classList.add('hidden');
+        confirmCallback = null;
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-3 rounded-xl shadow-lg text-sm font-bold text-white flex items-center gap-2 transform transition-all duration-300 translate-y-10 opacity-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-triangle-exclamation'}"></i> <span>${message}</span>`;
+      document.getElementById('toastContainer').appendChild(toast);
+      setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
+      setTimeout(() => { 
+        toast.classList.add('translate-y-10', 'opacity-0'); 
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function initCharts() {
+      Chart.register(ChartDataLabels);
+      const barCtx = document.getElementById('dailyElectricityChart').getContext('2d');
+      dailyChart = new Chart(barCtx, {
+        type: 'bar', data: { labels: [], datasets: [] },
+        options: {
+          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { font: { family: 'Prompt', size: 12, weight: 'bold' }, usePointStyle: true, boxWidth: 10 } },
+            datalabels: {
+              display: (c) => c.dataset.data[c.dataIndex] > 0,
+              anchor: 'center', align: 'center', color: '#fff', font: { family: 'Prompt', size: 10, weight: 'bold' },
+              formatter: (val) => val > 0 ? (val >= 1000 ? (val/1000).toFixed(1) + 'k' : Math.round(val)) : ''
+            },
+            tooltip: {
+              bodyFont: { family: 'Prompt', size: 13 }, titleFont: { family: 'Prompt', size: 14, weight: 'bold' },
+              callbacks: {
+                label: function(c) {
+                  let l = c.dataset.label || ''; if(l) l += ': ';
+                  if (c.parsed.y !== null) l += Number(c.parsed.y).toLocaleString() + (currentChartMode === 'kwh' ? ' kWh' : ' THB');
+                  return l;
+                },
+                footer: function(items) {
+                  let sum = 0; items.forEach(i => sum += i.parsed.y);
+                  return (currentLang === 'th' ? 'รวม: ' : 'Total: ') + sum.toLocaleString() + (currentChartMode === 'kwh' ? ' kWh' : ' THB');
+                }
+              }
+            }
+          },
+          scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { font: { family: 'Prompt', size: 11, weight: '600' } } },
+            y: { stacked: true, beginAtZero: true, grid: { color: '#e2e8f0' }, title: { display: true, text: 'Value', font: { family: 'Prompt', size: 12, weight: 'bold' } }, ticks: { font: { family: 'Prompt', size: 11 } } }
+          }
+        }
+      });
+
+      const pieCtx = document.getElementById('overviewPieChart').getContext('2d');
+      overviewPieChart = new Chart(pieCtx, {
+        type: 'doughnut', data: { labels: ['Peak', 'Off-Peak', 'Holiday'], datasets: [] },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '60%',
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 11, weight: 'bold' }, usePointStyle: true, padding: 15 } },
+            datalabels: {
+              display: true, color: '#fff', font: { family: 'Prompt', size: 12, weight: 'bold' },
+              formatter: (value, ctx) => {
+                let sum = 0; ctx.chart.data.datasets[0].data.map(d => sum += d);
+                let pct = (value*100 / sum).toFixed(1)+"%"; return value > 0 ? pct : '';
+              }
+            },
+            tooltip: { bodyFont: { family: 'Prompt', size: 13 }, callbacks: { label: c => ' ' + c.label + ': ' + Number(c.parsed).toLocaleString() + (currentChartMode === 'kwh' ? ' kWh' : ' THB') } }
+          }
+        }
+      });
+
+      // Init Dashboard Line Charts
+      const mccbCtx = document.getElementById('mccbLineChart').getContext('2d');
+      mccbLineChart = new Chart(mccbCtx, {
+        type: 'line', data: { labels: [], datasets: [] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { font: { family: 'Prompt', size: 12, weight: 'bold' }, usePointStyle: true } },
+            datalabels: { display: false } // ปิดตัวเลขบนจุดเพื่อไม่ให้รก
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#e2e8f0' }, title: { display: true, text: 'kWh', font: { family: 'Prompt', size: 11, weight: 'bold' } } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Prompt', size: 11, weight: '600' } } }
+          }
+        }
+      });
+
+      const costCtx = document.getElementById('costLineChart').getContext('2d');
+      costLineChart = new Chart(costCtx, {
+        type: 'line', data: { labels: [], datasets: [] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { font: { family: 'Prompt', size: 12, weight: 'bold' }, usePointStyle: true } },
+            datalabels: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#e2e8f0' }, title: { display: true, text: 'THB', font: { family: 'Prompt', size: 11, weight: 'bold' } } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Prompt', size: 11, weight: '600' } } }
+          }
+        }
+      });
+    }
+
+    function setChartMode(mode) {
+      currentChartMode = mode;
+      const btnKWh = document.getElementById('btnChartModeKWh');
+      const btnCost = document.getElementById('btnChartModeCost');
+      if (mode === 'kwh') {
+        btnKWh.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 font-bold transition";
+        btnCost.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition border border-transparent";
+      } else {
+        btnCost.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 font-bold transition";
+        btnKWh.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition border border-transparent";
+      }
+      updateCharts();
+    }
+
+    function updateCharts() {
+      if (!dailyChart || !overviewPieChart) return;
+      const { year, month, key } = getSelectedPeriod();
+      const isAllMonths = month === 'all';
+
+      let records = electricityData[key] || [];
+      records.sort((a, b) => (a.month || 0) - (b.month || 0) || a.day - b.day);
+      
+      const startDay = parseInt(document.getElementById('filterStartDay').value) || 1;
+      const endDay = parseInt(document.getElementById('filterEndDay').value) || 31;
+      
+      const mappedRecords = records.map((rec, index) => ({ ...rec, originalIndex: index }));
+      const filteredRecords = isAllMonths ? mappedRecords : mappedRecords.filter(r => r.day >= startDay && r.day <= endDay);
+      
+      const labels = filteredRecords.map(r => {
+          return isAllMonths ? r.displayDate : (currentLang === 'th' ? `วันที่ ${r.day}` : `Day ${r.day}`);
+      });
+      
+      dailyChart.options.scales.y.title.text = currentChartMode === 'kwh' ? (currentLang === 'th' ? 'ปริมาณไฟฟ้า (kWh)' : 'Electricity (kWh)') : (currentLang === 'th' ? 'ค่าใช้จ่าย (THB)' : 'Cost (THB)');
+      overviewPieChart.data.labels = currentLang === 'th' ? ['Peak', 'Off-Peak', 'Holiday'] : ['Peak', 'Off-Peak', 'Holiday'];
+      document.getElementById('pieChartSubtitle').innerText = currentChartMode === 'kwh' ? (currentLang === 'th' ? 'สัดส่วนปริมาณไฟฟ้า (kWh)' : 'Energy Proportions (kWh)') : (currentLang === 'th' ? 'สัดส่วนค่าใช้จ่าย (THB)' : 'Cost Proportions (THB)');
+
+      if (currentChartMode === 'kwh') {
+        const peakData = [], offPeakData = [], holidayData = [];
+        filteredRecords.forEach((rec) => {
+          const c = calculateRecordTOU(rec, records, rec.originalIndex);
+          peakData.push(Math.round(c.peakKWh)); offPeakData.push(Math.round(c.offPeakKWh)); holidayData.push(Math.round(c.holidayKWh));
+        });
+        dailyChart.data.labels = labels;
+        dailyChart.data.datasets = [
+          { label: 'Peak', data: peakData, backgroundColor: '#059669', borderRadius: 4 },
+          { label: 'Off-Peak', data: offPeakData, backgroundColor: '#2563eb', borderRadius: 4 },
+          { label: 'Holiday', data: holidayData, backgroundColor: '#d97706', borderRadius: 4 }
+        ];
+        overviewPieChart.data.datasets = [{ data: [window._currentDataSums?.sumPeakKWh || 0, window._currentDataSums?.sumOffPeakKWh || 0, window._currentDataSums?.sumHolidayKWh || 0], backgroundColor: ['#059669', '#2563eb', '#d97706'], borderWidth: 2, borderColor: '#fff' }];
+      } else {
+        const peakCostData = [], offPeakCostData = [], holidayCostData = [], ftCostData = [];
+        filteredRecords.forEach((rec) => {
+          const c = calculateRecordTOU(rec, records, rec.originalIndex);
+          peakCostData.push(Math.round(c.peakCost)); offPeakCostData.push(Math.round(c.offPeakCost)); holidayCostData.push(Math.round(c.holidayCost)); ftCostData.push(Math.round(c.ftCost));
+        });
+        dailyChart.data.labels = labels;
+        dailyChart.data.datasets = [
+          { label: 'Peak Cost', data: peakCostData, backgroundColor: '#059669', borderRadius: 4 },
+          { label: 'Off-Peak Cost', data: offPeakCostData, backgroundColor: '#2563eb', borderRadius: 4 },
+          { label: 'Holiday Cost', data: holidayCostData, backgroundColor: '#d97706', borderRadius: 4 },
+          { label: 'Ft Cost', data: ftCostData, backgroundColor: '#8b5cf6', borderRadius: 4 }
+        ];
+        overviewPieChart.data.datasets = [{ data: [window._currentDataSums?.sumPeakCost || 0, window._currentDataSums?.sumOffPeakCost || 0, window._currentDataSums?.sumHolidayCost || 0], backgroundColor: ['#059669', '#2563eb', '#d97706'], borderWidth: 2, borderColor: '#fff' }];
+      }
+      dailyChart.update(); overviewPieChart.update();
+
+      // Update Dashboard Line Charts
+      const mult = getCurrentSettings().multiplier;
+      let mcc1Data = [], mcc2Data = [], mcc3Data = [], mcc4Data = [];
+      let peakCostData = [], offPeakCostData = [], holidayCostData = [], ftCostData = [];
+
+      filteredRecords.forEach((rec) => {
+        // ประเมินการใช้พลังงานแต่ละ MCCB ระหว่าง 09.00 ถึง 22.00 
+        const m1 = (rec.mcc1.t22 > 0 && rec.mcc1.t09 > 0 && rec.mcc1.t22 > rec.mcc1.t09) ? (rec.mcc1.t22 - rec.mcc1.t09) * mult : 0;
+        const m2 = (rec.mcc2.t22 > 0 && rec.mcc2.t09 > 0 && rec.mcc2.t22 > rec.mcc2.t09) ? (rec.mcc2.t22 - rec.mcc2.t09) * mult : 0;
+        const m3 = (rec.mcc3.t22 > 0 && rec.mcc3.t09 > 0 && rec.mcc3.t22 > rec.mcc3.t09) ? (rec.mcc3.t22 - rec.mcc3.t09) * mult : 0;
+        const m4 = (rec.mcc4.t22 > 0 && rec.mcc4.t09 > 0 && rec.mcc4.t22 > rec.mcc4.t09) ? (rec.mcc4.t22 - rec.mcc4.t09) * mult : 0;
+
+        mcc1Data.push(Math.round(m1)); mcc2Data.push(Math.round(m2));
+        mcc3Data.push(Math.round(m3)); mcc4Data.push(Math.round(m4));
+
+        const c = calculateRecordTOU(rec, records, rec.originalIndex);
+        peakCostData.push(Math.round(c.peakCost));
+        offPeakCostData.push(Math.round(c.offPeakCost));
+        holidayCostData.push(Math.round(c.holidayCost));
+        ftCostData.push(Math.round(c.ftCost));
+      });
+
+      if (mccbLineChart) {
+        mccbLineChart.data.labels = labels;
+        mccbLineChart.data.datasets = [
+          { label: 'MCC01', data: mcc1Data, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3, pointRadius: 3 },
+          { label: 'MCC02', data: mcc2Data, borderColor: '#a855f7', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+          { label: 'MCC03', data: mcc3Data, borderColor: '#f59e0b', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+          { label: 'MCC04', data: mcc4Data, borderColor: '#14b8a6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 }
+        ];
+        mccbLineChart.update();
+      }
+
+      if (costLineChart) {
+        costLineChart.data.labels = labels;
+        costLineChart.data.datasets = [
+          { label: 'Peak Cost', data: peakCostData, borderColor: '#059669', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+          { label: 'Off-Peak Cost', data: offPeakCostData, borderColor: '#3b82f6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3, borderDash: [5, 5] },
+          { label: 'Holiday Cost', data: holidayCostData, borderColor: '#d97706', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+          { label: 'FT Cost', data: ftCostData, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', fill: true, tension: 0.3, pointRadius: 3 }
+        ];
+        costLineChart.update();
+      }
+    }
+
+    function openSettingsModal() {
+      const { year, month } = getSelectedPeriod();
+      document.querySelector('#settingsModal .currentMonthText').innerText = `${currentLang === 'th' ? THAI_MONTHS[month] : ENG_MONTHS[month]} ${year}`;
+      const set = getCurrentSettings();
+      document.getElementById('settingMultiplier').value = set.multiplier;
+      document.getElementById('settingFtRate').value = set.ftRate;
+      document.getElementById('settingPeakRate').value = set.peakRate;
+      document.getElementById('settingOffPeakRate').value = set.offPeakRate;
+      document.getElementById('settingHolidayRate').value = set.holidayRate;
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+    function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+    
+    function saveSettings(e) {
+      e.preventDefault();
+      const { key } = getSelectedPeriod();
+      monthlySettingsStore[key] = {
+        multiplier: parseFloat(document.getElementById('settingMultiplier').value || 1000000),
+        ftRate: parseFloat(document.getElementById('settingFtRate').value || 0),
+        peakRate: parseFloat(document.getElementById('settingPeakRate').value || 0),
+        offPeakRate: parseFloat(document.getElementById('settingOffPeakRate').value || 0),
+        holidayRate: parseFloat(document.getElementById('settingHolidayRate').value || 0)
+      };
+      closeSettingsModal(); renderAllTables(); updateCharts(); performDataSync();
+    }
+
+    function generateMonthlyPdfReport() {
+      const { year, month, key } = getSelectedPeriod();
+      const monthName = currentLang === 'th' ? THAI_MONTHS[month] : ENG_MONTHS[month];
+      const now = new Date();
+      const printTime = now.toLocaleDateString('th-TH') + ' ' + now.toLocaleTimeString('th-TH') + ' น.';
+      const records = electricityData[key] || [];
+      records.sort((a, b) => a.day - b.day);
+      const startDay = parseInt(document.getElementById('filterStartDay').value) || 1;
+      const endDay = parseInt(document.getElementById('filterEndDay').value) || 31;
+      
+      const mappedRecords = records.map((rec, index) => ({ ...rec, originalIndex: index }));
+      const filteredRecords = mappedRecords.filter(r => r.day >= startDay && r.day <= endDay);
+      
+      let sumPeakKWh=0, sumOffPeakKWh=0, sumHolidayKWh=0, sumTotalKWh=0;
+      let sumPeakCost=0, sumOffPeakCost=0, sumHolidayCost=0, sumSubtotalCost=0, sumFtCost=0, sumTotalCost=0;
+      let meterHtml='', summaryHtml='';
+
+      filteredRecords.forEach(rec => {
+        const c = calculateRecordTOU(rec, records, rec.originalIndex);
+        sumPeakKWh+=c.peakKWh; sumOffPeakKWh+=c.offPeakKWh; sumHolidayKWh+=c.holidayKWh; sumTotalKWh+=c.totalKWh;
+        sumPeakCost+=c.peakCost; sumOffPeakCost+=c.offPeakCost; sumHolidayCost+=c.holidayCost; sumSubtotalCost+=c.subtotalCost; sumFtCost+=c.ftCost; sumTotalCost+=c.totalCost;
+        
+        meterHtml += `<tr><td style="font-weight:bold;">${rec.day}</td><td>${rec.dayType}</td><td>${formatNum(rec.main?.t09,4)}</td><td>${formatNum(rec.main?.t22,4)}</td><td>${formatNum(rec.mcc1?.t09,4)}</td><td>${formatNum(rec.mcc1?.t22,4)}</td><td>${formatNum(rec.mcc2?.t09,4)}</td><td>${formatNum(rec.mcc2?.t22,4)}</td><td>${formatNum(rec.mcc3?.t09,4)}</td><td>${formatNum(rec.mcc3?.t22,4)}</td><td>${formatNum(rec.mcc4?.t09,4)}</td><td>${formatNum(rec.mcc4?.t22,4)}</td></tr>`;
+        const sz = rec.size === 'holiday' ? 'วันหยุด' : rec.size;
+        const bc = rec.size === '1000' ? 'b-1000' : (rec.size === '100' ? 'b-100' : (rec.size === 'holiday' ? 'b-holiday' : 'b-other'));
+        summaryHtml += `<tr><td style="font-weight:bold;">${rec.day}</td><td><span class="badge ${bc}">${sz}</span></td><td>${formatNum(c.peakKWh,1)}</td><td>${formatNum(c.offPeakKWh,1)}</td><td>${formatNum(c.holidayKWh,1)}</td><td style="font-weight:bold; background:#f8fafc;">${formatNum(c.totalKWh,1)}</td><td>${formatNum(c.peakCost,1)}</td><td>${formatNum(c.offPeakCost,1)}</td><td>${formatNum(c.holidayCost,1)}</td><td style="font-weight:bold; background:#f8fafc;">${formatNum(c.subtotalCost,1)}</td><td style="color:#92400e;">${formatNum(c.ftCost,1)}</td><td style="font-weight:bold; color:#047857; background:#ecfdf5;">${formatNum(c.totalCost,1)}</td></tr>`;
+      });
+
+      const printHtml = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>MDB 1 Report - ${monthName} ${year}</title><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>@page{size:A4 portrait;margin:10mm;}*{box-sizing:border-box;font-family:'Prompt',sans-serif;}body{margin:0;padding:15px;color:#1e293b;font-size:10px;} .header-box{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #059669;padding-bottom:8px;margin-bottom:12px;} .logo{height:60px;} .title{font-size:16px;font-weight:bold;color:#059669;margin:0;} .sub{font-size:10px;color:#64748b;margin-top:2px;} .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;} .kpi-card{border:1px solid #cbd5e1;border-radius:6px;padding:6px 10px;background:#f8fafc;} .kpi-title{font-size:8px;font-weight:bold;text-transform:uppercase;color:#64748b;} .kpi-val{font-size:14px;font-weight:bold;color:#0f172a;} table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:8.5px;text-align:center;} th,td{border:1px solid #cbd5e1;padding:3px 2px;} th{background:#f1f5f9;font-weight:600;} .badge{padding:1px 4px;border-radius:3px;font-size:7.5px;font-weight:bold;} .b-1000{background:#dbeafe;color:#1e40af;} .b-100{background:#dcfce7;color:#166534;} .b-holiday{background:#fee2e2;color:#b91c1c;} .b-other{background:#fef3c7;color:#92400e;} .tfoot-sum{background:#e2e8f0;font-weight:bold;font-size:9px;} .sign-row{display:flex;justify-content:space-between;margin-top:25px;padding-top:15px;} .sign-box{width:28%;text-align:center;border-top:1px dashed #94a3b8;padding-top:5px;font-size:9px;color:#475569;} .btn-print{background:#059669;color:#fff;padding:8px 16px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;margin-bottom:12px;font-size:12px;} @media print{.no-print{display:none!important;}body{padding:0;}}</style></head><body>
+      <div class="no-print" style="text-align: right;"><button class="btn-print" onclick="window.print()">🖨️ พิมพ์เอกสาร (Print / Save as PDF)</button></div>
+      <div class="header-box"><div><h1 class="title">Able Medical Company Limited</h1><div class="sub">รายงานสรุปปริมาณและการใช้จ่ายการใช้ไฟฟ้า MDB 1 ประจำเดือน <b>${monthName} ${year}</b> <br>แสดงข้อมูลวันที่: ${startDay} ถึง ${endDay} (พิมพ์เมื่อ: ${printTime})</div></div><img src="https://img2.pic.in.th/messageImage_1787986866051.jpg" alt="Logo" class="logo" onerror="this.src='https://placehold.co/150x50/059669/ffffff?text=ABLE+MEDICAL';"></div>
+      <div class="kpi-row"><div class="kpi-card"><div class="kpi-title">พลังงานไฟฟ้ารวม</div><div class="kpi-val">${formatNum(sumTotalKWh,2)} <span style="font-size:10px;">kWh</span></div></div><div class="kpi-card"><div class="kpi-title">ค่าใช้จ่ายรวมทั้งสิ้น</div><div class="kpi-val" style="color:#047857;">${formatNum(sumTotalCost,2)} <span style="font-size:10px;">THB</span></div></div><div class="kpi-card"><div class="kpi-title">ค่า FT รวม</div><div class="kpi-val" style="color:#92400e;">${formatNum(sumFtCost,2)} <span style="font-size:10px;">THB</span></div></div></div>
+      <div style="font-size:11px; font-weight:bold; border-left:3px solid #059669; padding-left:6px; margin-bottom:4px;">1. การบันทึกมิเตอร์ไฟฟ้ารายวัน [ MDB 1 ] (GWh)</div>
+      <table><thead><tr><th rowspan="2" style="width:25px;">วันที่</th><th rowspan="2" style="width:40px;">ประเภท</th><th colspan="2">Main</th><th colspan="2">MCC01</th><th colspan="2">MCC02</th><th colspan="2">MCC03</th><th colspan="2">MCC04</th></tr><tr><th>09.00</th><th>22.00</th><th>09.00</th><th>22.00</th><th>09.00</th><th>22.00</th><th>09.00</th><th>22.00</th><th>09.00</th><th>22.00</th></tr></thead><tbody>${meterHtml}</tbody></table>
+      <div style="font-size:11px; font-weight:bold; border-left:3px solid #059669; padding-left:6px; margin-bottom:4px; margin-top:10px;">2. สรุปปริมาณไฟฟ้าและค่าใช้จ่าย (PEA TOU)</div>
+      <table><thead><tr><th rowspan="2" style="width:25px;">วันที่</th><th rowspan="2" style="width:45px;">Size ผลิต</th><th colspan="4">ปริมาณไฟฟ้า (kWh)</th><th colspan="5">ค่าใช้จ่าย (THB)</th><th rowspan="2" style="width:60px;">รวมทั้งสิ้น (THB)</th></tr><tr><th>Peak</th><th>Off-Peak</th><th>Holiday</th><th>Total</th><th>Peak</th><th>Off-Peak</th><th>Holiday</th><th>Subtotal</th><th>ค่า FT</th></tr></thead><tbody>${summaryHtml}</tbody><tfoot><tr class="tfoot-sum"><td colspan="2">รวม</td><td>${formatNum(sumPeakKWh,1)}</td><td>${formatNum(sumOffPeakKWh,1)}</td><td>${formatNum(sumHolidayKWh,1)}</td><td style="background:#cbd5e1;">${formatNum(sumTotalKWh,1)}</td><td>${formatNum(sumPeakCost,1)}</td><td>${formatNum(sumOffPeakCost,1)}</td><td>${formatNum(sumHolidayCost,1)}</td><td style="background:#cbd5e1;">${formatNum(sumSubtotalCost,1)}</td><td>${formatNum(sumFtCost,1)}</td><td style="color:#047857; background:#a7f3d0;">${formatNum(sumTotalCost,1)}</td></tr></tfoot></table>
+      <div class="sign-row"><div class="sign-box">ผู้บันทึกข้อมูล<br><br>(_______________________)<br>วันที่: ___/___/___</div><div class="sign-box">หัวหน้าแผนกวิศวกรรม/ซ่อมบำรุง<br><br>(_______________________)<br>วันที่: ___/___/___</div><div class="sign-box">ผู้จัดการโรงงาน / ผู้อนุมัติ<br><br>(_______________________)<br>วันที่: ___/___/___</div></div>
+      </body></html>`;
+      const w = window.open('', '_blank'); w.document.open(); w.document.write(printHtml); w.document.close();
+    }
+    
+    function formatNum(val, decimals = 2) {
+      if (val === undefined || val === null || isNaN(val)) return '0.00';
+      return Number(val).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    // ฟังก์ชันจัดการทศนิยมไม่เกิน 5 ตำแหน่ง และตัด 0 ด้านหลังออก (หากเป็น 0 ให้แปลงเป็นค่าว่าง จะได้ไม่แสดงเลข 0)
+    function formatInputVal(val) {
+      if (val === undefined || val === null || isNaN(val) || val === '' || val === 0) return '';
+      return parseFloat(Number(val).toFixed(5)).toString();
+    }
+
+    // ======================== EDIT CELL MODAL LOGIC ========================
+    let _editTarget = null; // เก็บข้อมูลเป้าหมาย { idx, parentKey, subKey }
+
+    function openEditPopup(idx, parentKey, subKey, dayNumber) {
+      const { key } = getSelectedPeriod();
+      if (!electricityData[key] || !electricityData[key][idx]) return;
+
+      _editTarget = { idx, parentKey, subKey };
+      const currentVal = electricityData[key][idx][parentKey][subKey];
+
+      const titleMap = {
+        'main': 'Main', 'mcc1': 'MCC01', 'mcc2': 'MCC02', 'mcc3': 'MCC03', 'mcc4': 'MCC04'
+      };
+      document.getElementById('editCellTitle').innerText = `แก้ไขข้อมูล ${titleMap[parentKey]} เวลา ${subKey === 't09' ? '09.00' : '22.00'} (วันที่ ${dayNumber})`;
+
+      const inputEl = document.getElementById('editCellValue');
+      // หากเป็นค่า 0 ให้เว้นว่างไว้ เพื่อง่ายต่อการพิมพ์ใหม่
+      inputEl.value = currentVal === 0 ? '' : currentVal;
+      
+      document.getElementById('editCellModal').classList.remove('hidden');
+      setTimeout(() => inputEl.focus(), 100);
+    }
+
+    function closeEditPopup() {
+      document.getElementById('editCellModal').classList.add('hidden');
+      _editTarget = null;
+    }
+
+    function saveEditPopup() {
+      if (!_editTarget) return;
+      const rawVal = document.getElementById('editCellValue').value;
+      let numVal = parseFloat(rawVal);
+      if (isNaN(numVal)) numVal = 0; // หากกรอกผิดรูปแบบ หรือเว้นว่าง ให้คืนค่าเป็น 0
+
+      // บันทึกและ Auto save
+      updateNestedField(_editTarget.idx, _editTarget.parentKey, _editTarget.subKey, numVal);
+      closeEditPopup();
+    }
+
+    // รองรับการกด Enter บน Modal แก้ไขข้อมูล
+    document.getElementById('editCellValue').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') saveEditPopup();
+    });
+
+  </script>
+</body>
+</html>
